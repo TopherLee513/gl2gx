@@ -4,9 +4,6 @@
 #include <malloc.h>
 #include <math.h>
 
-#include <ogcsys.h>
-#include <gccore.h>
-
 #include "glint.h"
 #include "GL/gl.h"
 #include "GL/glu.h"
@@ -23,7 +20,7 @@ void gluLookAt( GLdouble eyeX,
 				GLdouble upY,
 				GLdouble upZ ) {
 
-	Vector cam = {eyeX, eyeY, eyeZ},
+	guVector cam = {eyeX, eyeY, eyeZ},
 			up = {upX, upY, upZ},
 		  look = {centerX, centerY, centerZ};
 

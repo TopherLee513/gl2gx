@@ -4,9 +4,6 @@
 #include <malloc.h>
 #include <math.h>
 
-#include <ogcsys.h>
-#include <gccore.h>
-
 #include "glint.h"
 #include "GL/gl.h"
 #include "GL/glut.h"

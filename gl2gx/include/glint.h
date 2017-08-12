@@ -1,3 +1,9 @@
+//#include <ogcsys.h>
+//#include <gccore.h>
+#include "gctypes.h"
+#include "gu.h"
+#include "gx.h"
+
 #include "GL/gl.h"
 
 //TODO: rewrite to support dynamic arrays
