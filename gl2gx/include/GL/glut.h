@@ -7,133 +7,6 @@
    provided without guarantee or warrantee expressed or  implied. This
    program is -not- in the public domain. */
 
-#if defined(_WIN32)
-
-/* GLUT 3.7 now tries to avoid including <windows.h>
-   to avoid name space pollution, but Win32's <GL/gl.h> 
-   needs APIENTRY and WINGDIAPI defined properly. */
-# if 0
-   /* This would put tons of macros and crap in our clean name space. */
-#  define  WIN32_LEAN_AND_MEAN
-#  include <windows.h>
-# else
-   /* XXX This is from Win32's <windef.h> */
-#  ifndef APIENTRY
-#   define GLUT_APIENTRY_DEFINED
-#   if (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED) || defined(__BORLANDC__) || defined(__LCC__)
-#    define APIENTRY    __stdcall
-#   else
-#    define APIENTRY
-#   endif
-#  endif
-   /* XXX This is from Win32's <winnt.h> */
-#  ifndef CALLBACK
-#   if (defined(_M_MRX000) || defined(_M_IX86) || defined(_M_ALPHA) || defined(_M_PPC)) && !defined(MIDL_PASS) || defined(__LCC__)
-#    define CALLBACK __stdcall
-#   else
-#    define CALLBACK
-#   endif
-#  endif
-   /* XXX Hack for lcc compiler.  It doesn't support __declspec(dllimport), just __stdcall. */
-#  if defined( __LCC__ )
-#   undef WINGDIAPI
-#   define WINGDIAPI __stdcall
-#  else
-   /* XXX This is from Win32's <wingdi.h> and <winnt.h> */
-#   ifndef WINGDIAPI
-#    define GLUT_WINGDIAPI_DEFINED
-#    define WINGDIAPI __declspec(dllimport)
-#   endif
-#  endif
-   /* XXX This is from Win32's <ctype.h> */
-#  ifndef _WCHAR_T_DEFINED
-typedef unsigned short wchar_t;
-#   define _WCHAR_T_DEFINED
-#  endif
-# endif
-
-/* To disable automatic library usage for GLUT, define GLUT_NO_LIB_PRAGMA
-   in your compile preprocessor options. */
-# if !defined(GLUT_BUILDING_LIB) && !defined(GLUT_NO_LIB_PRAGMA)
-#  pragma comment (lib, "winmm.lib")      /* link with Windows MultiMedia lib */
-/* To enable automatic SGI OpenGL for Windows library usage for GLUT,
-   define GLUT_USE_SGI_OPENGL in your compile preprocessor options.  */
-#  ifdef GLUT_USE_SGI_OPENGL
-#   pragma comment (lib, "opengl.lib")    /* link with SGI OpenGL for Windows lib */
-#   pragma comment (lib, "glu.lib")       /* link with SGI OpenGL Utility lib */
-#   pragma comment (lib, "glut.lib")      /* link with Win32 GLUT for SGI OpenGL lib */
-#  else
-#   pragma comment (lib, "opengl32.lib")  /* link with Microsoft OpenGL lib */
-#   pragma comment (lib, "glu32.lib")     /* link with Microsoft OpenGL Utility lib */
-#   pragma comment (lib, "glut32.lib")    /* link with Win32 GLUT lib */
-#  endif
-# endif
-
-/* To disable supression of annoying warnings about floats being promoted
-   to doubles, define GLUT_NO_WARNING_DISABLE in your compile preprocessor
-   options. */
-# ifndef GLUT_NO_WARNING_DISABLE
-#  pragma warning (disable:4244)  /* Disable bogus VC++ 4.2 conversion warnings. */
-#  pragma warning (disable:4305)  /* VC++ 5.0 version of above warning. */
-# endif
-
-/* Win32 has an annoying issue where there are multiple C run-time
-   libraries (CRTs).  If the executable is linked with a different CRT
-   from the GLUT DLL, the GLUT DLL will not share the same CRT static
-   data seen by the executable.  In particular, atexit callbacks registered
-   in the executable will not be called if GLUT calls its (different)
-   exit routine).  GLUT is typically built with the
-   "/MD" option (the CRT with multithreading DLL support), but the Visual
-   C++ linker default is "/ML" (the single threaded CRT).
-
-   One workaround to this issue is requiring users to always link with
-   the same CRT as GLUT is compiled with.  That requires users supply a
-   non-standard option.  GLUT 3.7 has its own built-in workaround where
-   the executable's "exit" function pointer is covertly passed to GLUT.
-   GLUT then calls the executable's exit function pointer to ensure that
-   any "atexit" calls registered by the application are called if GLUT
-   needs to exit.
-
-   Note that the __glut*WithExit routines should NEVER be called directly.
-   To avoid the atexit workaround, #define GLUT_DISABLE_ATEXIT_HACK. */
-
-/* XXX This is from Win32's <process.h> */
-# if !defined(_MSC_VER) && !defined(__cdecl)
-   /* Define __cdecl for non-Microsoft compilers. */
-#  define __cdecl
-#  define GLUT_DEFINED___CDECL
-# endif
-# ifndef _CRTIMP
-#  ifdef _NTSDK
-    /* Definition compatible with NT SDK */
-#   define _CRTIMP
-#  else
-    /* Current definition */
-#   ifdef _DLL
-#    define _CRTIMP __declspec(dllimport)
-#   else
-#    define _CRTIMP
-#   endif
-#  endif
-#  define GLUT_DEFINED__CRTIMP
-# endif
-
-/* GLUT API entry point declarations for Win32. */
-# ifdef GLUT_BUILDING_LIB
-#  define GLUTAPI __declspec(dllexport)
-# else
-#  ifdef _DLL
-#   define GLUTAPI __declspec(dllimport)
-#  else
-#   define GLUTAPI extern
-#  endif
-# endif
-
-/* GLUT callback calling convention for Win32. */
-# define GLUTCALLBACK __cdecl
-
-#endif  /* _WIN32 */
-
 #include <GL/gl.h>
 #include <GL/glu.h>
 
@@ -141,22 +14,19 @@ typedef unsigned short wchar_t;
 extern "C" {
 #endif
 
-#if defined(_WIN32)
-# ifndef GLUT_BUILDING_LIB
-extern _CRTIMP void __cdecl exit(int);
-# endif
-#else
+#ifndef APIENTRY
 /* non-Win32 case. */
 /* Define APIENTRY and CALLBACK to nothing if we aren't on Win32. */
 # define APIENTRY
 # define GLUT_APIENTRY_DEFINED
+#endif
+
 # define CALLBACK
 /* Define GLUTAPI and GLUTCALLBACK as below if we aren't on Win32. */
 # define GLUTAPI extern
 # define GLUTCALLBACK
 /* Prototype exit for the non-Win32 case (see above). */
-extern void exit(int);
-#endif
+//extern void exit(int);
 
 /**
  GLUT API revision history:
